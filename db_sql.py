@@ -724,7 +724,7 @@ class DBSQL(DB):
     def _getMigrationVersion(self):
         """Return latest migration version."""
         return int(
-            max([re.sub(r"_.*$", "", f) for f in os.walk("migrations").next()[2]])
+            max([re.sub(r"_.*$", "", f) for f in os.walk("migrations").__next__()[2]])
         )
 
     def _getDatabaseDataCount(self):
