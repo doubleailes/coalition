@@ -8,8 +8,18 @@ Coalition server.
 from twisted.web import xmlrpc, server, static, http
 from twisted.internet import defer, reactor
 from twisted.web.server import Session
-import cPickle, time, os, getopt, sys, base64, re, thread, ConfigParser, random, shutil
-import atexit, json
+import time
+import os
+import getopt
+import sys
+import base64
+import re
+import thread
+import ConfigParser
+import random
+import shutil
+import atexit
+import json
 import smtplib
 from email.mime.text import MIMEText
 from textwrap import dedent, fill
@@ -53,25 +63,25 @@ def cfgStr(name, defvalue):
 
 
 def usage():
-    print ("Usage: server [OPTIONS]")
-    print ("Start a Coalition server.\n")
-    print ("Options:")
-    print ("  -h, --help\t\tShow this help")
-    print ("  -p, --port=PORT\tPort used by the server (default: " + str(port) + ")")
-    print ("  -v, --verbose\t\tIncrease verbosity")
-    print ("  --init\t\tInitialize the database")
-    print ("  --migrate\t\tMigrate the database with interactive confirmation")
-    print ("  --reset\t\tReset the database (warning: all previous data are lost)")
+    print("Usage: server [OPTIONS]")
+    print("Start a Coalition server.\n")
+    print("Options:")
+    print("  -h, --help\t\tShow this help")
+    print("  -p, --port=PORT\tPort used by the server (default: " + str(port) + ")")
+    print("  -v, --verbose\t\tIncrease verbosity")
+    print("  --init\t\tInitialize the database")
+    print("  --migrate\t\tMigrate the database with interactive confirmation")
+    print("  --reset\t\tReset the database (warning: all previous data are lost)")
     if sys.platform == "win32":
-        print ("  -c, --console=\t\tRun as a windows console application")
-        print ("  -s, --service=\t\tRun as a windows service")
-    print ("\nExample : server -p 1234")
+        print("  -c, --console=\t\tRun as a windows console application")
+        print("  -s, --service=\t\tRun as a windows service")
+    print("\nExample : server -p 1234")
 
 
 # Log functions
 def vprint(str):
     if verbose:
-        print (str)
+        print(str)
         sys.stdout.flush()
 
 
@@ -164,7 +174,7 @@ def _interactiveConfirmation(confirmation_sentence="Yes I know what I'm doing.")
         + confirmation_sentence
         + "\n"
     )
-    print (text)
+    print(text)
     sys.stdout.flush()
     answer = raw_input()
     if answer == confirmation_sentence:
@@ -879,9 +889,9 @@ try:
     if len(args) != 0:
         usage()
         sys.exit(2)
-except getopt.GetoptError, err:
+except getopt.GetoptError as err:
     # print help information and exit:
-    print str(err)  # will print something like "option -a not recognized"
+    print(str(err))  # will print something like "option -a not recognized"
     usage()
     sys.exit(2)
 for o, a in opts:
@@ -918,7 +928,7 @@ if not verbose or service:
         pass
 
 vprint("[Init] --- Start ------------------------------------------------------------")
-print ("[Init] " + time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(time.time())))
+print("[Init] " + time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(time.time())))
 if service:
     vprint("[Init] Running service")
 else:
@@ -956,7 +966,7 @@ if not len(db._getDatabaseTables()):
 with db:
     requires_migration = db.requiresMigration()
     if not migratedb and requires_migration:
-        print (
+        print(
             dedent(
                 """
 		Coalition cannot start since the database schema and the source code
@@ -970,7 +980,7 @@ with db:
         exit(1)
 
     if migratedb and not requires_migration:
-        print (
+        print(
             dedent(
                 """
 		The database does not require migration, but the '--migrate' parameter was provided."""
@@ -979,7 +989,7 @@ with db:
         exit(1)
 
     if requires_migration and migratedb:
-        print (
+        print(
             dedent(
                 """
 		Please consider doing a backup of the database first. Are you ready to proceed?"""
@@ -988,13 +998,13 @@ with db:
         if _interactiveConfirmation("Yes, proceed to migration!"):
             success = db.migrateDatabase()
             if success:
-                print ("Database migration was successfull.")
+                print("Database migration was successfull.")
                 exit(0)
             else:
-                print ("A problem occured during the database migration.")
+                print("A problem occured during the database migration.")
                 exit(1)
         else:
-            print ("Database migration was cancelled by user.")
+            print("Database migration was cancelled by user.")
             exit(0)
 
     if resetdb:
