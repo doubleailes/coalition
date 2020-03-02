@@ -14,7 +14,7 @@ import getopt
 import sys
 import base64
 import re
-import threading
+import _thread
 import configparser
 import random
 import shutil
@@ -295,7 +295,7 @@ def listenUDP():
 
 def main():
     """Start the UDP server used for the broadcast."""
-    thread.start_new_thread(listenUDP, ())
+    _thread.start_new_thread(listenUDP, ())
 
     from twisted.internet import reactor
     from twisted.web import server
@@ -802,7 +802,7 @@ try:
 except OSError:
     pass
 
-config = configparser.SafeConfigParser()
+config = configparser.ConfigParser()
 config.read("coalition.ini")
 
 # Default config file values
@@ -1060,4 +1060,3 @@ else:
         main()
 
 # vim: tabstop=4 noexpandtab shiftwidth=4 softtabstop=4 textwidth=79
-
