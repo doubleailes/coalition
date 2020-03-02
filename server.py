@@ -14,8 +14,8 @@ import getopt
 import sys
 import base64
 import re
-import thread
-import ConfigParser
+import threading
+import configparser
 import random
 import shutil
 import atexit
@@ -802,7 +802,7 @@ try:
 except OSError:
     pass
 
-config = ConfigParser.SafeConfigParser()
+config = configparser.SafeConfigParser()
 config.read("coalition.ini")
 
 # Default config file values
@@ -870,7 +870,7 @@ initdb = False
 # Cloud mode
 servermode = cfgStr("servermode", "normal")
 if servermode != "normal":
-    cloudconfig = ConfigParser.SafeConfigParser()
+    cloudconfig = configparser.SafeConfigParser()
     if servermode == "aws":
         cloudconfig.read("cloud_aws.ini")
     elif servermode == "gcloud":
