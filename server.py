@@ -788,7 +788,7 @@ os.chdir(installDir)
 
 # Create the logs/ directory
 try:
-    os.mkdir(dataDir + "/logs", 0755)
+    os.mkdir(dataDir + "/logs", mode=0o755)
 except OSError:
     pass
 
