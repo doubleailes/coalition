@@ -16,52 +16,62 @@
 # limitations under the License.
 
 
-__all__ = ['QarnotGenericException',
-           'UnauthorizedException',
-           'MissingTaskException',
-           'MaxTaskException',
-           'MissingDiskException',
-           'MaxDiskException',
-           'NotEnoughCreditsException',
-           'LockedDiskException']
+__all__ = [
+    "QarnotGenericException",
+    "UnauthorizedException",
+    "MissingTaskException",
+    "MaxTaskException",
+    "MissingDiskException",
+    "MaxDiskException",
+    "NotEnoughCreditsException",
+    "LockedDiskException",
+]
 
 
 class QarnotGenericException(Exception):
     """General Connection exception"""
+
     def __init__(self, msg):
         super(QarnotGenericException, self).__init__("Error: {0}".format(msg))
 
 
 class UnauthorizedException(Exception):
     """Invalid token."""
+
     pass
 
 
 class MissingTaskException(Exception):
     """Non existent task."""
+
     pass
 
 
 class MaxTaskException(Exception):
     """Max number of tasks reached."""
+
     pass
 
 
 class MissingDiskException(Exception):
     """Non existing disk."""
+
     pass
 
 
 class MaxDiskException(Exception):
     """Max number of disks reached."""
+
     pass
 
 
 class NotEnoughCreditsException(Exception):
     """Not enough credits exceptions."""
+
     pass
 
 
 class LockedDiskException(Exception):
     """Locked disk."""
+
     pass

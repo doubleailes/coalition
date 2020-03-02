@@ -29,7 +29,15 @@ import threading
 import itertools
 
 try:
-    from progressbar import AnimatedMarker, Bar, ETA, Percentage, AdaptiveETA, ProgressBar, AdaptiveTransferSpeed
+    from progressbar import (
+        AnimatedMarker,
+        Bar,
+        ETA,
+        Percentage,
+        AdaptiveETA,
+        ProgressBar,
+        AdaptiveTransferSpeed,
+    )
 except:
     pass
 
@@ -52,8 +60,7 @@ class Disk(object):
     """
 
     # Creation
-    def __init__(self, connection, description, lock=False,
-                 tags=None):
+    def __init__(self, connection, description, lock=False, tags=None):
         """
         Create a disk on a cluster.
 
@@ -87,19 +94,16 @@ class Disk(object):
         """Create the Disk on the REST API.
         .. note:: This method should not be used unless if the object was created with the constructor.
         """
-        data = {
-            "description": self._description,
-            "locked": self._locked
-            }
+        data = {"description": self._description, "locked": self._locked}
         if self._tags is not None:
             data["tags"] = self._tags
-        response = self._connection._post(get_url('disk folder'), json=data)
+        response = self._connection._post(get_url("disk folder"), json=data)
         if response.status_code == 403:
-            raise MaxDiskException(response.json()['message'])
+            raise MaxDiskException(response.json()["message"])
         else:
             raise_on_error(response)
 
-        self._uuid = response.json()['uuid']
+        self._uuid = response.json()["uuid"]
         self.update()
 
     @classmethod
@@ -117,10 +121,10 @@ class Disk(object):
         :raises qarnot.exceptions.QarnotGenericException: API general error, see message for details
         :raises qarnot.exceptions.UnauthorizedException: invalid credentials
         """
-        response = connection._get(get_url('disk info', name=disk_uuid))
+        response = connection._get(get_url("disk info", name=disk_uuid))
 
         if response.status_code == 404:
-            raise MissingDiskException(response.json()['message'])
+            raise MissingDiskException(response.json()["message"])
         raise_on_error(response)
 
         return cls.from_json(connection, response.json())
@@ -132,10 +136,12 @@ class Disk(object):
         :param qarnot.connection.Connection connection: the cluster connection
         :param dict json_disk: Dictionary representing the disk
         """
-        disk = cls(connection,
-                   json_disk['description'],
-                   lock=json_disk['locked'],
-                   tags=json_disk.get('tags'))
+        disk = cls(
+            connection,
+            json_disk["description"],
+            lock=json_disk["locked"],
+            tags=json_disk.get("tags"),
+        )
         disk._update(json_disk)
         return disk
 
@@ -157,9 +163,9 @@ class Disk(object):
         if (now - self._last_cache) < self._update_cache_time and not flushcache:
             return
 
-        response = self._connection._get(get_url('disk info', name=self._uuid))
+        response = self._connection._get(get_url("disk info", name=self._uuid))
         if response.status_code == 404:
-            raise MissingDiskException(response.json()['message'])
+            raise MissingDiskException(response.json()["message"])
         raise_on_error(response)
 
         self._update(response.json())
@@ -185,16 +191,15 @@ class Disk(object):
         :raises qarnot.exceptions.QarnotGenericException: API general error, see message for details
         :raises qarnot.exceptions.UnauthorizedException: invalid credentials
         """
-        response = self._connection._delete(
-            get_url('disk info', name=self._uuid))
+        response = self._connection._delete(get_url("disk info", name=self._uuid))
 
         if response.status_code == 404:
-            raise MissingDiskException(response.json()['message'])
+            raise MissingDiskException(response.json()["message"])
         if response.status_code == 403:
-            raise LockedDiskException(response.json()['message'])
+            raise LockedDiskException(response.json()["message"])
         raise_on_error(response)
 
-    def get_archive(self, extension='zip', local=None):
+    def get_archive(self, extension="zip", local=None):
         """Get an archive of this disk's content.
 
         :param str extension: in {'tar', 'tgz', 'zip'},
@@ -211,13 +216,13 @@ class Disk(object):
         :raises ValueError: invalid extension format
         """
         response = self._connection._get(
-            get_url('get disk', name=self._uuid, ext=extension),
-            stream=True)
+            get_url("get disk", name=self._uuid, ext=extension), stream=True
+        )
 
         if response.status_code == 404:
-            raise MissingDiskException(response.json()['message'])
+            raise MissingDiskException(response.json()["message"])
         elif response.status_code == 400:
-            raise ValueError('invalid file format : {0}', extension)
+            raise ValueError("invalid file format : {0}", extension)
         else:
             raise_on_error(response)
 
@@ -225,7 +230,7 @@ class Disk(object):
         if os.path.isdir(local):
             local = os.path.join(local, ".".join([self._uuid, extension]))
 
-        with open(local, 'wb') as f_local:
+        with open(local, "wb") as f_local:
             for elt in response.iter_content():
                 f_local.write(elt)
         return local
@@ -242,14 +247,13 @@ class Disk(object):
         """
 
         self.flush()
-        response = self._connection._get(
-            get_url('tree disk', name=self._uuid))
+        response = self._connection._get(get_url("tree disk", name=self._uuid))
         if response.status_code == 404:
-            raise MissingDiskException(response.json()['message'])
+            raise MissingDiskException(response.json()["message"])
         raise_on_error(response)
         return [FileInfo(**f) for f in response.json()]
 
-    def directory(self, directory=''):
+    def directory(self, directory=""):
         """List files in a directory of the disk. Doesn't go through
         subdirectories.
 
@@ -270,10 +274,11 @@ class Disk(object):
         self.flush()
 
         response = self._connection._get(
-            get_url('ls disk', name=self._uuid, path=directory))
+            get_url("ls disk", name=self._uuid, path=directory)
+        )
         if response.status_code == 404:
-            if response.json()['message'] == 'no such disk':
-                raise MissingDiskException(response.json()['message'])
+            if response.json()["message"] == "no such disk":
+                raise MissingDiskException(response.json()["message"])
         raise_on_error(response)
         return [FileInfo(**f) for f in response.json()]
 
@@ -297,20 +302,20 @@ class Disk(object):
               * size
               * sha1sum
         """
-        if not directory.endswith('/'):
-            directory = directory + '/'
+        if not directory.endswith("/"):
+            directory = directory + "/"
 
         filesdict = {}
         for root, dirs, files in os.walk(directory):
             for file_ in files:
                 filepath = os.path.join(root, file_)
-                name = filepath[len(directory) - 1:]
+                name = filepath[len(directory) - 1 :]
                 filesdict[name] = filepath
             for dir_ in dirs:
                 filepath = os.path.join(root, dir_)
-                name = filepath[len(directory) - 1:]
-                if not name.endswith('/'):
-                    name += '/'
+                name = filepath[len(directory) - 1 :]
+                if not name.endswith("/"):
+                    name += "/"
                 filesdict[name] = filepath
 
         self.sync_files(filesdict, verbose)
@@ -340,7 +345,8 @@ class Disk(object):
               * size
               * sha1sum
         """
-        def generate_file_sha1(filepath, blocksize=2**20):
+
+        def generate_file_sha1(filepath, blocksize=2 ** 20):
             """Generate SHA1 from file"""
             sha1 = hashlib.sha1()
             with open(filepath, "rb") as file_:
@@ -353,15 +359,15 @@ class Disk(object):
 
         def create_qfi(name, filepath):
             """Create a QFI from a file"""
-            if not name.startswith('/'):
-                name = '/' + name
+            if not name.startswith("/"):
+                name = "/" + name
             mtime = os.path.getmtime(filepath)
             dtutc = datetime.datetime.utcfromtimestamp(mtime)
             dtutc = dtutc.replace(microsecond=0)
 
-            type = 'directory' if os.path.isdir(filepath) else 'file'
-            sha1 = generate_file_sha1(filepath) if type is 'file' else 'N/A'
-            size = os.stat(filepath).st_size if type is 'file' else 0
+            type = "directory" if os.path.isdir(filepath) else "file"
+            sha1 = generate_file_sha1(filepath) if type is "file" else "N/A"
+            size = os.stat(filepath).st_size if type is "file" else 0
             qfi = FileInfo(dtutc, name, size, type, sha1)
             qfi.filepath = filepath
             return qfi
@@ -381,11 +387,18 @@ class Disk(object):
         removes = remote - local
 
         sadds = sorted(adds, key=lambda x: x.sha1sum)
-        groupedadds = [list(g) for _, g in itertools.groupby(
-            sadds, lambda x: x.sha1sum)]
+        groupedadds = [
+            list(g) for _, g in itertools.groupby(sadds, lambda x: x.sha1sum)
+        ]
 
         for file_ in removes:
-            renames = [x for x in adds if x.sha1sum == file_.sha1sum and not x.directory and not file_.directory]
+            renames = [
+                x
+                for x in adds
+                if x.sha1sum == file_.sha1sum
+                and not x.directory
+                and not file_.directory
+            ]
             if len(renames) > 0:
                 for dup in renames:
                     if verbose:
@@ -399,7 +412,13 @@ class Disk(object):
 
         for entry in groupedadds:
             try:
-                rem = next(x for x in remote if x.sha1sum == entry[0].sha1sum and not x.directory and not entry[0].directory)
+                rem = next(
+                    x
+                    for x in remote
+                    if x.sha1sum == entry[0].sha1sum
+                    and not x.directory
+                    and not entry[0].directory
+                )
                 if rem.name == entry[0].name:
                     continue
                 if verbose:
@@ -456,13 +475,8 @@ class Disk(object):
         :raises qarnot.exceptions.UnauthorizedException: invalid credentials
         """
 
-        data = [
-            {
-                "source": source,
-                "dest": dest
-            }
-        ]
-        url = get_url('move disk', name=self._uuid)
+        data = [{"source": source, "dest": dest}]
+        url = get_url("move disk", name=self._uuid)
         response = self._connection._post(url, json=data)
 
         raise_on_error(response)
@@ -482,13 +496,8 @@ class Disk(object):
         :raises qarnot.exceptions.QarnotGenericException: API general error, see message for details
         :raises qarnot.exceptions.UnauthorizedException: invalid credentials
         """
-        data = [
-            {
-                "target": target,
-                "linkName": linkname
-            }
-        ]
-        url = get_url('link disk', name=self._uuid)
+        data = [{"target": target, "linkName": linkname}]
+        url = get_url("link disk", name=self._uuid)
         response = self._connection._post(url, json=data)
 
         raise_on_error(response)
@@ -531,16 +540,16 @@ class Disk(object):
         if isinstance(local_or_file, str):
             if os.path.isdir(local_or_file):
                 dest = remote or os.path.basename(local_or_file)
-                url = get_url('update file', name=self._uuid, path=os.path.dirname(dest))
-                response = self._connection._post(
-                    url,
-                    )
+                url = get_url(
+                    "update file", name=self._uuid, path=os.path.dirname(dest)
+                )
+                response = self._connection._post(url)
                 if response.status_code == 404:
-                    raise MissingDiskException(response.json()['message'])
+                    raise MissingDiskException(response.json()["message"])
                 raise_on_error(response)
                 return
             else:
-                file_ = open(local_or_file, 'rb')
+                file_ = open(local_or_file, "rb")
         else:
             file_ = local_or_file
 
@@ -564,7 +573,9 @@ class Disk(object):
         elif mode is UploadMode.lazy:
             self._filecache[dest] = file_
         else:
-            thread = threading.Thread(None, self._add_file, dest, (file_, dest), **kwargs)
+            thread = threading.Thread(
+                None, self._add_file, dest, (file_, dest), **kwargs
+            )
             thread.start()
             self._filethreads[dest] = thread
 
@@ -584,32 +595,31 @@ class Disk(object):
         except AttributeError:
             pass
 
-        if dest.endswith('/'):
+        if dest.endswith("/"):
             dest = os.path.join(dest, os.path.basename(file_.name))
-        url = get_url('update file', name=self._uuid, path=os.path.dirname(dest))
+        url = get_url("update file", name=self._uuid, path=os.path.dirname(dest))
 
         try:
             # If requests_toolbelt is installed, we can use its
             # MultipartEncoder to stream the upload and save memory overuse
             from requests_toolbelt import MultipartEncoder  # noqa
-            m = MultipartEncoder(
-                fields={'filedata': (os.path.basename(dest), file_)})
+
+            m = MultipartEncoder(fields={"filedata": (os.path.basename(dest), file_)})
             response = self._connection._post(
-                url,
-                data=m,
-                headers={'Content-Type': m.content_type})
+                url, data=m, headers={"Content-Type": m.content_type}
+            )
         except ImportError:
             response = self._connection._post(
-                url,
-                files={'filedata': (os.path.basename(dest), file_)})
+                url, files={"filedata": (os.path.basename(dest), file_)}
+            )
 
         if response.status_code == 404:
-            raise MissingDiskException(response.json()['message'])
+            raise MissingDiskException(response.json()["message"])
         raise_on_error(response)
 
         # Update file settings
-        if 'executable' not in kwargs:
-            kwargs['executable'] = self._is_executable(file_)
+        if "executable" not in kwargs:
+            kwargs["executable"] = self._is_executable(file_)
         self.update_file_settings(dest, **kwargs)
         self.update(True)
 
@@ -640,13 +650,16 @@ class Disk(object):
 
         if not os.path.isdir(local):
             raise IOError("Not a valid directory")
-        if not remote.endswith('/'):
-            remote += '/'
+        if not remote.endswith("/"):
+            remote += "/"
         for dirpath, _, files in os.walk(local):
             remote_loc = dirpath.replace(local, remote, 1)
             for filename in files:
-                self.add_file(os.path.join(dirpath, filename),
-                              posixpath.join(remote_loc, filename), mode)
+                self.add_file(
+                    os.path.join(dirpath, filename),
+                    posixpath.join(remote_loc, filename),
+                    mode,
+                )
 
     def get_file_iterator(self, remote, chunk_size=4096, progress=None):
         """Get a file iterator from the disk.
@@ -690,28 +703,35 @@ class Disk(object):
                 yield chunk
         else:
             response = self._connection._get(
-                get_url('update file', name=self._uuid, path=remote),
-                stream=True)
+                get_url("update file", name=self._uuid, path=remote), stream=True
+            )
 
             if response.status_code == 404:
-                if response.json()['message'] == "No such disk":
-                    raise MissingDiskException(response.json()['message'])
+                if response.json()["message"] == "No such disk":
+                    raise MissingDiskException(response.json()["message"])
             raise_on_error(response)
 
-            total_length = float(response.headers.get('content-length'))
+            total_length = float(response.headers.get("content-length"))
             if progress is not None:
                 if progress is True:
                     progress = _cb
                     try:
                         widgets = [
                             remote,
-                            ' ', Percentage(),
-                            ' ', AnimatedMarker(),
-                            ' ', Bar(),
-                            ' ', AdaptiveETA(),
-                            ' ', AdaptiveTransferSpeed(unit='B')
+                            " ",
+                            Percentage(),
+                            " ",
+                            AnimatedMarker(),
+                            " ",
+                            Bar(),
+                            " ",
+                            AdaptiveETA(),
+                            " ",
+                            AdaptiveTransferSpeed(unit="B"),
                         ]
-                        progressbar = ProgressBar(widgets=widgets, max_value=total_length)
+                        progressbar = ProgressBar(
+                            widgets=widgets, max_value=total_length
+                        )
                     except Exception as e:
                         print(str(e))
                         progress = None
@@ -742,9 +762,8 @@ class Disk(object):
         """
 
         for file_info in self:
-            outpath = os.path.normpath(file_info.name.lstrip('/'))
-            self.get_file(file_info, os.path.join(output_dir,
-                                                  outpath), progress)
+            outpath = os.path.normpath(file_info.name.lstrip("/"))
+            self.get_file(file_info, os.path.join(output_dir, outpath), progress)
 
     def get_file(self, remote, local=None, progress=None):
         """Get a file from the disk.
@@ -770,7 +789,7 @@ class Disk(object):
         def make_dirs(_local):
             """Make directory if needed"""
             directory = os.path.dirname(_local)
-            if directory != '' and not os.path.exists(directory):
+            if directory != "" and not os.path.exists(directory):
                 os.makedirs(directory)
 
         if isinstance(remote, FileInfo):
@@ -788,7 +807,7 @@ class Disk(object):
 
         if os.path.isdir(local):
             return
-        with open(local, 'wb') as f_local:
+        with open(local, "wb") as f_local:
             for chunk in self.get_file_iterator(remote, progress=progress):
                 f_local.write(chunk)
         return local
@@ -800,12 +819,12 @@ class Disk(object):
             return
 
         response = self._connection._put(
-            get_url('update file', name=self._uuid, path=remote_path),
-            json=settings)
+            get_url("update file", name=self._uuid, path=remote_path), json=settings
+        )
 
         if response.status_code == 404:
-                if response.json()['message'] == "No such disk":
-                    raise MissingDiskException(response.json()['message'])
+            if response.json()["message"] == "No such disk":
+                raise MissingDiskException(response.json()["message"])
         raise_on_error(response)
 
     def delete_file(self, remote, force=False):
@@ -839,11 +858,12 @@ class Disk(object):
             return
 
         response = self._connection._delete(
-            get_url('update file', name=self._uuid, path=dest))
+            get_url("update file", name=self._uuid, path=dest)
+        )
 
         if response.status_code == 404:
-            if response.json()['message'] == "No such disk":
-                raise MissingDiskException(response.json()['message'])
+            if response.json()["message"] == "No such disk":
+                raise MissingDiskException(response.json()["message"])
         if force and response.status_code == 404:
             pass
         else:
@@ -858,18 +878,14 @@ class Disk(object):
 
         .. note:: When updating disks' properties, auto update will be disabled until commit is called.
         """
-        data = {
-            "description": self._description,
-            "locked": self._locked
-        }
+        data = {"description": self._description, "locked": self._locked}
         if self._tags is not None:
             data["tags"] = self._tags
 
         self._auto_update = self._last_auto_update_state
-        resp = self._connection._put(get_url('disk info', name=self._uuid),
-                                     json=data)
+        resp = self._connection._put(get_url("disk info", name=self._uuid), json=data)
         if resp.status_code == 404:
-            raise MissingDiskException(resp.json()['message'])
+            raise MissingDiskException(resp.json()["message"])
         raise_on_error(resp)
         self.update(True)
 
@@ -1007,8 +1023,10 @@ class Disk(object):
 
     def __str__(self):
         return (
-            ("[LOCKED]     - " if self.locked else "[NON LOCKED] - ") +
-            self.uuid + " - " + self.description
+            ("[LOCKED]     - " if self.locked else "[NON LOCKED] - ")
+            + self.uuid
+            + " - "
+            + self.description
         )
 
     # Operators
@@ -1056,6 +1074,7 @@ class Disk(object):
 # Utility Classes
 class FileInfo(object):
     """Information about a file."""
+
     def __init__(self, lastChange, name, size, fileFlags, sha1Sum):
 
         self.lastchange = None
@@ -1066,8 +1085,9 @@ class FileInfo(object):
         if isinstance(lastChange, datetime.datetime):
             self.lastchange = lastChange
         else:
-            self.lastchange = datetime.datetime.strptime(lastChange,
-                                                         "%Y-%m-%dT%H:%M:%SZ")
+            self.lastchange = datetime.datetime.strptime(
+                lastChange, "%Y-%m-%dT%H:%M:%SZ"
+            )
 
         self.name = name
         """:type: :class:`str`
@@ -1077,7 +1097,7 @@ class FileInfo(object):
         """:type: :class:`int`
 
         Size of the file on the :class:`Disk` (in Bytes)."""
-        self.directory = fileFlags == 'directory'
+        self.directory = fileFlags == "directory"
         """:type: :class:`bool`
 
         Is the file a directory."""
@@ -1088,7 +1108,7 @@ class FileInfo(object):
         SHA1 Sum of the file."""
 
         if not self.directory:
-            self.executable = fileFlags == 'executableFile'
+            self.executable = fileFlags == "executableFile"
             """:type: :class:`bool`
 
             Is the file executable."""
@@ -1096,26 +1116,34 @@ class FileInfo(object):
         self.filepath = None  # Only for sync
 
     def __repr__(self):
-        template = 'FileInfo(lastchange={0}, name={1}, size={2}, '\
-                   'directory={3}, sha1sum={4})'
-        return template.format(self.lastchange, self.name, self.size,
-                               self.directory, self.sha1sum)
+        template = (
+            "FileInfo(lastchange={0}, name={1}, size={2}, "
+            "directory={3}, sha1sum={4})"
+        )
+        return template.format(
+            self.lastchange, self.name, self.size, self.directory, self.sha1sum
+        )
 
     def __eq__(self, other):
-        return (self.name == other.name and
-                self.size == other.size and
-                self.directory == other.directory and
-                self.sha1sum == other.sha1sum)
+        return (
+            self.name == other.name
+            and self.size == other.size
+            and self.directory == other.directory
+            and self.sha1sum == other.sha1sum
+        )
 
     def __hash__(self):
-        return (hash(self.name) ^
-                hash(self.size) ^
-                hash(self.directory) ^
-                hash(self.sha1sum))
+        return (
+            hash(self.name)
+            ^ hash(self.size)
+            ^ hash(self.directory)
+            ^ hash(self.sha1sum)
+        )
 
 
 class UploadMode(object):
     """How to add files on a :class:`Disk`."""
+
     blocking = 0
     """Call to :func:`~Disk.add_file` :func:`~Disk.add_directory`
     or blocks until file is done uploading."""
