@@ -243,14 +243,14 @@ class DBSQL(DB):
         if affinities == "":
             return 0
         aff = self.listAffinities()
-        mask = 0L
+        mask = 0
         cur = self.Conn.cursor()
         for affinity in affinities.split(","):
             if affinity != "":
                 m = re.match(r"^#(\d+)$", affinity)
                 if m:
                     bit = int(m.group(1)) - 1
-                    mask = mask | (1L << bit)
+                    mask = mask | (1 << bit)
                 else:
                     mask = mask | aff[affinity]
         return mask
@@ -263,7 +263,7 @@ class DBSQL(DB):
         names = []
         aff = self.getAffinities()
         for id, name in aff.iteritems():
-            bit = 1L << (id - 1)
+            bit = 1 << (id - 1)
             if affinity_bits & bit != 0:
                 if name != "":
                     names.append(name)
