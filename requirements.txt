@@ -4,3 +4,4 @@ Twisted
 python-ldap
 Sphinx
 sphinx_rtd_theme
+mysqlclient
