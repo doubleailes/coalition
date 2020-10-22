@@ -23,6 +23,7 @@ import logstash
 import requests
 import logger_lib
 
+# Get config
 config = ConfigParser.SafeConfigParser()
 config.read("coalition.ini")
 
@@ -59,6 +60,20 @@ def cfgStr(name, defvalue):
     return defvalue
 
 
+def cfgFloat(name, defvalue):
+    global config
+    if config.has_option("server", name):
+        try:
+            return float(config.get("server", name))
+        except:
+            pass
+    return defvalue
+
+
+# Get logger
+logger = logger_lib.get_logger(cfgStr("logstash_name", "logstash"))
+
+
 def usage():
     print("Usage: server [OPTIONS]")
     print("Start a Coalition server.\n")
@@ -93,12 +108,6 @@ def getLogFilter(pattern):
     return filter
 
 
-logger = logger_lib.get_logger("logstash")
-
-
-gateway_url = config.get("server", "theyard_gateway")
-gateway_timeout = float(config.get("server", "theyard_gateway_timeout"))
-
 # Notify functions
 def sendEmail(to, message):
     if to != "":
@@ -131,11 +140,12 @@ def sendEmail(to, message):
 
 
 def send_notification(to, message):
+    gateway_url = cfgStr("theyard_gateway", "")
     cmd = gateway_url + "/notify/send/rocket/channel/%40{0}/message/{1}".format(
         to, message.replace(" ", "%20")
     )
     try:
-        requests.post(cmd, timeout=gateway_timeout)
+        requests.post(cmd, timeout=cfgFloat("theyard_gateway_timeout", 0.1))
     except requests.exceptions.ConnectionError as err:
         logger.warning("error of con as {0}".format(str(err)))
 
@@ -695,7 +705,9 @@ class Master(xmlrpc.XMLRPC):
         log = ""
         try:
             response = requests.get(
-                "http://elasticsearchcoalition:9200/_search",
+                "http://{0}:9200/_search".format(
+                    cfgStr("elasticsearch_name", "elasticsearchcoalition")
+                ),
                 data=json.dumps(search),
                 headers=HEADERS,
             )

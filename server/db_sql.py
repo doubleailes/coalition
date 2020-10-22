@@ -17,7 +17,7 @@ import ping_db
 import pickle
 
 red = ping_db.get_ping_db()
-logger = logger_lib.get_logger("logstash")
+logger = logger_lib.get_logger(cfgStr("logstash_name", "logstash"))
 
 
 def convdata(d):
