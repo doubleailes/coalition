@@ -12,12 +12,10 @@ import cloud
 from cloud.common import createWorkerInstanceName
 from textwrap import dedent
 import os
-import logger_lib
 import ping_db
 import pickle
 
 red = ping_db.get_ping_db()
-logger = logger_lib.get_logger(cfgStr("logstash_name", "logstash"))
 
 
 def convdata(d):
@@ -580,7 +578,7 @@ class DBSQL(DB):
                 worker["free_memory"] = info["free_memory"]
                 worker["total_memory"] = info["total_memory"]
             except Exception as err:
-                logger.error("Can load worker with error:{0}".format(str(err)))
+                print("Can load worker with error:{0}".format(str(err)))
 
             req = self.Conn.cursor()
             self._execute(
