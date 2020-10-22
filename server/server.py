@@ -82,11 +82,6 @@ def vprint(str):
         sys.stdout.flush()
 
 
-def getLogFilename(jobId):
-    global dataDir
-    return dataDir + "/logs/" + str(jobId) + ".log"
-
-
 def getLogFilter(pattern):
     """Get the pattern filter from the cache or add one"""
     global LogFilterCache
@@ -99,11 +94,6 @@ def getLogFilter(pattern):
 
 
 logger = logger_lib.get_logger("logstash")
-
-
-def writeJobLog(jobId, log):
-    print(log)
-    logger.info(log, extra={"job_id": jobId})
 
 
 gateway_url = config.get("server", "theyard_gateway")
@@ -147,7 +137,7 @@ def send_notification(to, message):
     try:
         requests.post(cmd, timeout=gateway_timeout)
     except requests.exceptions.ConnectionError as err:
-        print("error of con as {0}".format(str(err)))
+        logger.warning("error of con as {0}".format(str(err)))
 
 
 def notifyError(job):
@@ -725,13 +715,6 @@ class Master(xmlrpc.XMLRPC):
         except Exception as err:
             log = "Failed to use REST methode with error {0}".format(str(err))
         return log
-
-    def deleteLog(self, jobId):
-        # Look for the job
-        try:
-            os.remove(getLogFilename(jobId))
-        except OSError:
-            pass
 
 
 class Workers(xmlrpc.XMLRPC):
